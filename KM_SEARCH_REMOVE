@@ -1,0 +1,55 @@
+;Script Name  : KM_SEARCH_REMOVE
+;Created By   : ST
+;Created Date : 12JUN25
+;Comment      :
+;--------------------------------------------------------------------------------------------
+build_local_data_item  'lcl_Filename' 'lcl_Result' 'lcl_RowFound' 'lcl_Status' 'lcl_String' 'lcl_line' 'lcl_position' 'lcl_MaxRow' 'NA_File_Name' 'NA_Table_Name' 'lcl_CurrDate'
+get_current_date lcl_CurrDate
+call 'util:dateFormatter' #1= 'ddMMyy'  #2=lcl_CurrDate #3='ddMMMyy' #4=lcl_CurrDate 
+if KM_SEARCH_PAGE_STATUS = 'AL'
+    set lcl_Filename 'M:\\qikres\\Data\\KM-Search\\Database.txt'
+else
+    if KM_SEARCH_PAGE_STATUS = 'TS'
+        set lcl_Filename 'M:\\qikres\\Data\\KM-Search\\Supervisor.txt'
+    end_if
+end_if
+get_table_row_count 'KM_SEARCH_ALLDATA' lcl_MaxRow
+search_table 'KM_SEARCH_ALLDATA' KM_SEARCH_NO 'Row' lcl_RowFound '' lcl_MaxRow lcl_Result 'Row'
+if lcl_RowFound <> '' &  lcl_Result = KM_SEARCH_NO
+    open_file lcl_Filename 'Y' lcl_Status
+    if lcl_Status = '0'
+        if KM_SEARCH_BOOKMARKS <> 'Y'
+             set KM_SEARCH_BOOKMARKS 'N'
+        end_if
+        ;calculate lcl_RowFound = lcl_RowFound + '1'
+        delete_file_line  lcl_FileName lcl_RowFound lcl_Status 
+        ;calculate lcl_RowFound = lcl_RowFound - '1'
+        if lcl_Status = '0'
+            set lcl_String KM_SEARCH_NO
+            concat lcl_String  ',' KM_SEARCH_BOOKMARKS ','  KM_SEARCH_STRING
+            concat lcl_String ',' KM_SEARCH_NAME ','  KM_SEARCH_LOCATION 
+            concat lcl_String ',' 'Edit' ',' 'R'
+            concat lcl_String ',' SystemInt ' Remove 'lcl_CurrDate 
+            concat lcl_String ','  KM_SEARCH_Revised
+            insert_file_line lcl_FileName lcl_String '' lcl_Status
+            if lcl_Status = '0'
+                remove_page 'KM_SEARCH_EDIT'
+                set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+                set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'SYSTEM : REMOVE KM SUCCEED !' 
+                set_popup_control_property 'KM_SEARCH' 'Label5' 'styles.text' 'white_on_green_B14'
+                ;remove_page 'KM_SEARCH'
+                clear_table 'KM_SEARCH_DATA'
+                clear_table'KM_SEARCH_ALLDATA'
+               ;
+            end_if
+        end_if
+    end_if
+    close_file lcl_Filename
+else
+    remove_page 'KM_SEARCH'
+    set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+    set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'WARNING : NOT FOUND !' 
+    call 'KM_SEARCH_OPEN'
+end_if
+remove_page 'KM_SEARCH'
+call 'KM_SEARCH_OPEN'
