@@ -1,0 +1,46 @@
+;Script Name  : KM_SEARCH_REMOVE_COMMENT2
+;Created By   : ST
+;Created Date : 14jul25
+;Comment      : Read comment to table
+;--------------------------------------------------------------------------------------------
+build_local_data_item 'lcl_controlName' 'lcl_dataItemName' 'lcl_value' 'lcl_row' 'lcl_columnName' 'lcl_Result' 'lcl_Status' 'lcl_rowFound' 'lcl_String' 'lcl_Filename'
+get_popup_focus 'KM_SEARCH_WEBBOARD'  lcl_controlName lcl_dataItemName lcl_value lcl_row lcl_columnName
+if lcl_columnName = 'PicUser'
+    set lcl_Filename 'M:\\qikres\\Data\\KM-Webboard\\Webboard.txt'
+    Call 'READ_FILE_TO_TABLE' #1= lcl_Filename #2= 'KM_SEARCH_WEBBOARD_ALL' #3= ',' #4= ''
+    open_file lcl_Filename 'Y' lcl_Status
+    if lcl_Status = '0'
+        search_table 'KM_SEARCH_WEBBOARD_ALL' KM_SEARCH_REMOVE_COMMENT 'Row' lcl_rowFound ; lcl_rowFound lcl_max_row lcl_Result 'Row'
+        set lcl_String SystemInt ' R,,'
+        copy_table 'KM_SEARCH_WEBBOARD_ALL' lcl_Result lcl_rowFound ',' 'User'
+        concat lcl_String lcl_Result ','
+        copy_table 'KM_SEARCH_WEBBOARD_ALL' lcl_Result lcl_rowFound ',' 'Role'
+        concat lcl_String lcl_Result ','
+        copy_table 'KM_SEARCH_WEBBOARD_ALL' lcl_Result lcl_rowFound ',' 'Date'
+        concat lcl_String lcl_Result ','
+        copy_table 'KM_SEARCH_WEBBOARD_ALL' lcl_Result lcl_rowFound ',' 'Comment'
+        concat lcl_String lcl_Result ','
+        copy_table 'KM_SEARCH_WEBBOARD_ALL' lcl_Result lcl_rowFound ',' 'No'
+        concat lcl_String lcl_Result ','
+        copy_table 'KM_SEARCH_WEBBOARD_ALL' lcl_Result lcl_rowFound ',' 'String'
+        concat lcl_String lcl_Result
+        read_popup 'KM_SEARCH_CHK_REMOVE_COMMENT'
+        delete_file_line  lcl_FileName lcl_rowFound lcl_Status 
+        if lcl_Status = '0'
+            insert_file_line lcl_FileName lcl_String '' lcl_Status
+            if lcl_Status <> '0'
+                set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'visible' 'Y'
+                set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'text' 'Error : Delete comment fail'
+            end_if
+        else
+            set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'visible' 'Y'
+            set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'text' 'Error : Delete comment fail'
+        end_if
+    else
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'visible' 'Y'
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'text' 'Error : Delete comment fail'
+    end_if
+    close_file lcl_FileName
+end_if
+;clear_popup 'KM_SEARCH_WEBBOARD' 
+call 'KM_SEARCH_WEB_REFRESH' #1= KM_SEARCH_NO #2= 'N'
