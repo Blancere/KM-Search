@@ -1,0 +1,20 @@
+;Script Name  : KM_SEARCH_RQKM
+;Created By   : ST
+;Created Date : 14jul25
+;Comment      : Read comment to table
+;--------------------------------------------------------------------------------------------
+build_local_data_item 'NA_Table_Name' 'NA_File_Name'
+Set NA_Table_Name 'KM_SEARCH_ALLDATA'
+Set NA_File_Name 'M:\\qikres\\Data\\KM-Search\\Database.txt'   
+Call 'READ_FILE_TO_TABLE' #1= NA_File_Name #2= NA_Table_Name #3= ',' #4= ''
+set KM_SEARCH_PAGE_STATUS  'RQKM'
+set_popup_control_property 'KM_SEARCH' 'Tab_Search' 'visible' 'N'
+set_popup_control_property 'KM_SEARCH' 'InputField3' 'visible' 'N'
+set_popup_control_property 'KM_SEARCH' 'Tab_Book' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_Sup' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_All' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_Rq_Km' 'styles.inactiveControl' 'KM_HEAD_ACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_New' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+;set_popup_control_property 'KM_SEARCH' 'InPlaceList1' 'visible' 'N'
+set KM_SEARCH_NO 'RQKM'
+call 'KM_SEARCH_WEB_REFRESH' #1= 'RQKM' #2= 'N'
