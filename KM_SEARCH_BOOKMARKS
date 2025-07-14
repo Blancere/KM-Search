@@ -1,0 +1,54 @@
+;Script Name  : KM_SEARCH_BOOKMARKS
+;Created By   : ST
+;Created Date : 10Jun25
+;Comment      :
+;--------------------------------------------------------------------------------------------
+
+build_local_data_item  'lcl_Result' 'lcl_rowFound' 'lcl_MaxRow'  'NA_File_Name' 'NA_Table_Name'
+clear_table 'KM_SEARCH_DATA'
+Set NA_File_Name 'M:\\qikres\\Data\\KM-Search\\Database.txt'   ;M:\qikres\QikKM\File
+Set NA_Table_Name 'KM_SEARCH_ALLDATA'
+Call 'READ_FILE_TO_TABLE' #1= NA_File_Name #2= NA_Table_Name #3= ',' #4= ''
+get_table_row_count 'KM_SEARCH_ALLDATA' lcl_MaxRow
+search_table 'KM_SEARCH_ALLDATA' 'Y' 'Book' lcl_rowFound
+label 'Loop'
+if lcl_rowFound <> ''
+    copy_table 'KM_SEARCH_ALLDATA' lcl_Result lcl_rowFound '^' 'Status'
+    if lcl_Result <> 'R'
+	    copy_table 'KM_SEARCH_ALLDATA' lcl_Result lcl_rowFound '^'
+	    insert_table_row  'KM_SEARCH_DATA' lcl_Result '' '^'
+	    ;set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Name' '^' 'graphic' 'icon-edit.png'	
+	    calculate lcl_rowFound = lcl_rowFound + '1'
+	    search_table 'KM_SEARCH_ALLDATA' 'Y' 'Book' lcl_rowFound lcl_rowFound lcl_MaxRow
+	    if lcl_rowFound <> ''
+	        goto 'Loop'
+	    end_if
+	else
+	    calculate lcl_rowFound = lcl_rowFound + '1'
+	    search_table 'KM_SEARCH_ALLDATA' 'Y' 'Book' lcl_rowFound lcl_rowFound lcl_MaxRow
+	    if lcl_rowFound <> ''
+	        goto 'Loop'
+	    end_if
+	end_if
+end_if
+get_table_row_count 'KM_SEARCH_DATA' lcl_MaxRow
+set lcl_rowFound ''
+while lcl_rowFound <= lcl_MaxRow
+    set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Name' '^' 'graphic' '00_star.png'	
+    if RoleCode = 'SA' | RoleCode = 'TS' 
+        set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Edit' '^' 'graphic' 'icon-edit.png'
+    else
+        update_table_cell 'KM_SEARCH_DATA' '' lcl_rowFound 'Edit'
+	    update_table_cell 'KM_SEARCH_ALLDATA' '' lcl_rowFound 'Edit'
+    end_if
+	calculate lcl_rowFound = lcl_rowFound + '1'
+end_while
+remove_page 'KM_SEARCH'
+set_popup_control_property 'KM_SEARCH' 'Tab_Search' 'visible' 'N'
+set_popup_control_property 'KM_SEARCH' 'InputField3' 'visible' 'N'
+set_popup_control_property 'KM_SEARCH' 'Tab_Book' 'styles.inactiveControl' 'KM_HEAD_ACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_Sup' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_All' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_New' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set KM_SEARCH_PAGE_STATUS 'BK'
+read_popup 'KM_SEARCH'
