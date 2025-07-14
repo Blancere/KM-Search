@@ -1,0 +1,96 @@
+;Script Name  : KM_SEARCH_OPEN
+;Created By   : ST
+;Created Date : 10Jun25
+;Comment      :
+;--------------------------------------------------------------------------------------------
+
+build_local_data_item  'NA_File_Name' 'NA_Table_Name' 'lcl_Result' 'lcl_rowFound' 'lcl_MaxRow' 'lcl_Position' 'lcl_String'
+set KM_SEARCH_PAGE_STATUS ''
+clear_table 'KM_SEARCH_ALLDATA'
+Set NA_File_Name 'M:\\qikres\\Data\\KM-Search\\Database.txt'   
+Set NA_Table_Name 'KM_SEARCH_ALLDATA'
+Call 'READ_FILE_TO_TABLE' #1= NA_File_Name #2= NA_Table_Name #3= ',' #4= ''
+;=======  insert_table_display
+get_table_row_count NA_Table_Name lcl_MaxRow
+clear_table 'KM_SEARCH_DATA'
+set lcl_rowFound '1'
+while (lcl_rowFound <= lcl_MaxRow)
+    copy_table NA_Table_Name lcl_Result lcl_rowFound '^' 'Status'
+    if lcl_Result <> 'R'
+        copy_table NA_Table_Name lcl_Result lcl_rowFound '^'
+        insert_table_row 'KM_SEARCH_DATA' lcl_Result '' '^'
+    end_if
+    calculate lcl_rowFound = lcl_rowFound + '1'
+end_while
+;======== ;----- set image -----;
+get_table_row_count 'KM_SEARCH_DATA' lcl_MaxRow
+set lcl_rowFound '1'
+while(lcl_rowFound <= lcl_MaxRow)
+	set lcl_Result ''
+	set lcl_String ''
+	copy_table 'KM_SEARCH_DATA' lcl_Result lcl_rowFound ',' 'Book'
+	if lcl_Result = 'Y'
+	    set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Name' ',' 'graphic' '00_star.png'	
+	else 
+	    copy_table 'KM_SEARCH_DATA' lcl_Result lcl_rowFound ',' 'Source'
+	    search_data_item '.pdf' lcl_Position lcl_Result '1'
+	    if lcl_Position <> ''
+	        set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Name' ',' 'graphic' '00_pdf1.png'	;pdf
+	    else 
+	        search_data_item '.mp4' lcl_Position lcl_Result '1'
+	        if lcl_Position <> ''
+	             set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Name' ',' 'graphic' '00_vdeo.png'  ; mp4 vdo
+	        else
+	             set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Name' ',' 'graphic' '00_icon_internet.png'	;internet
+	        end_if
+	    end_if
+	end_if
+	;---- Set ID ----- ;
+	;copy_table 'KM_SEARCH_DATA' lcl_Result lcl_rowFound '^' 'Row'
+	;concat lcl_String 'ID:' lcl_Result
+	;update_table_cell 'KM_SEARCH_DATA' lcl_String  lcl_rowFound 'Row'
+	;------------- ;
+	calculate lcl_rowFound = lcl_rowFound + '1'
+end_while
+
+;========== Set pic edit
+set lcl_rowFound '1'
+while(lcl_rowFound <= lcl_MaxRow) 
+	if RoleCode = 'SA' | RoleCode = 'TS' 
+	    set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Edit' '^' 'graphic' 'icon-edit.png'	
+	end_if
+	update_table_cell 'KM_SEARCH_DATA' '' lcl_rowFound 'Edit'
+	update_table_cell 'KM_SEARCH_ALLDATA' '' lcl_rowFound 'Edit'
+	calculate lcl_rowFound = lcl_rowFound + '1'
+end_while
+
+remove_page 'KM_SEARCH'
+set_popup_control_property 'KM_SEARCH' 'Tab_Search' 'visible' 'Y'
+set_popup_control_property 'KM_SEARCH' 'InputField3' 'visible' 'Y'
+set_popup_control_property 'KM_SEARCH' 'Tab_Book' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_Sup' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_All' 'styles.inactiveControl' 'KM_HEAD_ACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_New' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set KM_SEARCH_PAGE_STATUS 'AL'
+if RoleCode = 'SA' | RoleCode = 'TS' | RoleCode = 'TC' ; Tab_Sup
+    set_popup_control_property 'KM_SEARCH' 'Tab_Sup' 'enabled' 'Y'  
+else
+    set_popup_control_property 'KM_SEARCH' 'Tab_Sup' 'enabled' 'N' 
+end_if
+if RoleCode = 'SA' | RoleCode = 'TS' ; Tab_Add
+    set_popup_control_property 'KM_SEARCH' 'PushButton5' 'enabled' 'Y'  
+else
+    set_popup_control_property 'KM_SEARCH' 'PushButton5' 'enabled' 'N' 
+end_if
+if RoleCode = 'SA' ; Tab_Backup
+    set_popup_control_property 'KM_SEARCH' 'PushButton4' 'visible' 'Y'  
+else
+    set_popup_control_property 'KM_SEARCH' 'PushButton4' 'visible' 'N' 
+end_if
+if OfficeTypeAA = 'RES'
+    read_popup 'KM_SEARCH'
+else
+    set warning 'Please SignIn'
+	read_popup 'warning' 
+end_if
+call 'KM_SEARCH_STRING'
