@@ -1,0 +1,44 @@
+;Script Name  : KM_SEARCH_OPEN_FILE
+;Created By   : ST
+;Created Date : 
+;Comment      :  
+;--------------------------------------------------------------------------------------------
+build_local_data_item 'lcl_link' 'lcl_control' 'lcl_controlName' 'lcl_dataItemName' 'lcl_value' 'lcl_row' 'lcl_columnName' 'lcl_Result'
+get_popup_focus 'KM_SEARCH'  lcl_controlName lcl_dataItemName lcl_value lcl_row lcl_columnName
+if lcl_columnName = 'Name'
+    if QIK_LOGIN_SEARCH <> ''
+        copy_table 'KM_SEARCH_DATA' lcl_Result lcl_row '^' 'Row'
+        set KM_SEARCH_NO lcl_Result
+        call 'KM_SEARCH_WEB_REFRESH' #1= lcl_Result #2= 'N'
+    end_if
+else
+    if lcl_columnName = 'Edit'
+        if RoleCode = 'SA' | RoleCode = 'TS' 
+            copy_table 'KM_SEARCH_DATA' lcl_Result lcl_row '^' 'Row'
+            set KM_SEARCH_NO lcl_Result
+            copy_table 'KM_SEARCH_DATA' lcl_Result lcl_row '^' 'Name'
+            set KM_SEARCH_NAME lcl_Result
+            copy_table 'KM_SEARCH_DATA' lcl_Result lcl_row '^' 'Search'
+            set KM_SEARCH_STRING lcl_Result
+            copy_table 'KM_SEARCH_DATA' lcl_Result lcl_row '^' 'Source'
+            set KM_SEARCH_LOCATION lcl_Result
+            copy_table 'KM_SEARCH_DATA' lcl_Result lcl_row '^' 'Book'
+            set KM_SEARCH_BOOKMARKS lcl_Result
+            copy_table 'KM_SEARCH_DATA' lcl_Result lcl_row '^' 'Ref'
+            set KM_SEARCH_Revised lcl_Result
+            if KM_SEARCH_PAGE_STATUS = 'TS'
+                set_popup_control_property 'KM_SEARCH_EDIT' 'CheckBox1' 'visible' 'N'
+            else
+                set_popup_control_property 'KM_SEARCH_EDIT' 'CheckBox1' 'visible' 'Y'
+            end_if
+            if SystemInt = 'A1' | RoleCode = 'SA' ; Edit locaation file
+                set_popup_control_property 'KM_SEARCH_EDIT' 'InputField4' 'enabled' 'Y'
+            else
+                set_popup_control_property 'KM_SEARCH_EDIT' 'InputField4' 'enabled' 'N'
+            end_if
+            clear_popup 'KM_SEARCH' 
+            read_popup 'KM_SEARCH_EDIT' 
+        end_if
+    end_if
+end_if
+clear_popup 'KM_SEARCH' 
