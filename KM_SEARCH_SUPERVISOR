@@ -1,0 +1,52 @@
+;Script Name  : KM_SEARCH_SUPERVISOR
+;Created By   : ST
+;Created Date : 10Jun25
+;Comment      :
+;--------------------------------------------------------------------------------------------
+
+build_local_data_item  'NA_File_Name' 'NA_Table_Name' 'lcl_Result' 'lcl_rowFound' 'lcl_MaxRow' 
+
+clear_table 'KM_SEARCH_DATA'
+Set NA_File_Name 'M:\\qikres\\Data\\KM-Search\\Supervisor.txt'   
+Set NA_Table_Name 'KM_SEARCH_DATA'
+;Call 'READ_FILE_TO_TABLE' #1= NA_File_Name #2= NA_Table_Name #3= ',' #4= ''
+Call 'READ_FILE_TO_TABLE' #1= NA_File_Name #2= 'KM_SEARCH_ALLDATA' #3= ',' #4= ''
+;=======  insert_table_display
+get_table_row_count 'KM_SEARCH_ALLDATA' lcl_MaxRow
+clear_table 'KM_SEARCH_DATA'
+set lcl_rowFound '1'
+while (lcl_rowFound <= lcl_MaxRow)
+    copy_table 'KM_SEARCH_ALLDATA' lcl_Result lcl_rowFound ',' 'Status'
+    if lcl_Result <> 'R'
+        copy_table 'KM_SEARCH_ALLDATA' lcl_Result lcl_rowFound ','
+        insert_table_row 'KM_SEARCH_DATA' lcl_Result '' ','
+    end_if
+    calculate lcl_rowFound = lcl_rowFound + '1'
+end_while
+;===============================================
+get_table_row_count NA_Table_Name lcl_MaxRow
+set lcl_rowFound '1'
+while(lcl_rowFound <= lcl_MaxRow)
+	;----- set image -----;
+	set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Name' ',' 'graphic' '00_icon_sup.png'	
+	calculate lcl_rowFound = lcl_rowFound + '1'
+end_while
+;========== Set pic edit
+set lcl_rowFound '1'
+while(lcl_rowFound <= lcl_MaxRow) 
+	if RoleCode = 'SA' | RoleCode = 'TS'
+	    set_table_property 'KM_SEARCH_DATA' lcl_rowFound 'Edit' ',' 'graphic' 'icon-edit.png'	
+	end_if
+	update_table_cell 'KM_SEARCH_DATA' '' lcl_rowFound 'Edit'
+	update_table_cell 'KM_SEARCH_ALLDATA' '' lcl_rowFound 'Edit'
+	calculate lcl_rowFound = lcl_rowFound + '1'
+end_while
+remove_page 'KM_SEARCH'
+set_popup_control_property 'KM_SEARCH' 'Tab_Search' 'visible' 'Y'
+set_popup_control_property 'KM_SEARCH' 'InputField3' 'visible' 'Y'
+set_popup_control_property 'KM_SEARCH' 'Tab_Book' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_Sup' 'styles.inactiveControl' 'KM_HEAD_ACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_All' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set_popup_control_property 'KM_SEARCH' 'Tab_New' 'styles.inactiveControl' 'KM_HEAD_INACTIVE'
+set KM_SEARCH_PAGE_STATUS 'TS'
+read_popup 'KM_SEARCH'
