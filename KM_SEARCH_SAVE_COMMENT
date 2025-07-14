@@ -1,0 +1,54 @@
+;Script Name  : KM_SEARCH_SAVE_COMMENT
+;Created By   : ST
+;Created Date : 12JUN25
+;Comment      :
+;--------------------------------------------------------------------------------------------
+build_local_data_item  'lcl_Filename' 'lcl_Result' 'lcl_RowFound' 'lcl_Status' 'lcl_String' 'lcl_line' 'lcl_position' 'lcl_max_row' 'lcl_CurrDate' 'lcl_Time' 'lcl_role' 'NA_Table_Name'\
+'lcl_UserA'
+Get_current_time lcl_Time
+copy_data_item lcl_Time lcl_Time '1' '5'
+get_current_date lcl_CurrDate
+call 'util:dateFormatter' #1= 'ddMMyy'  #2=lcl_CurrDate #3='ddMMMyy' #4=lcl_CurrDate 
+set lcl_Filename 'M:\\qikres\\Data\\KM-Webboard\\Webboard.txt'
+get_table_row_count 'KM_SEARCH_WEBBOARD_ALL' lcl_max_row
+copy_data_item lcl_UserA USERAA '1' '6'
+if KM_SEARCH_COMMENT <> '' 
+    if lcl_UserA = 'TGTRUE'
+        open_file lcl_Filename 'Y' lcl_Status
+        if lcl_Status = '0'
+            set lcl_RowFound '1'
+            copy_table 'KM_SEARCH_WEBBOARD_ALL' lcl_Result lcl_RowFound ',' 'Row'
+            calculate lcl_Result = lcl_Result + '1'
+            switch RoleCode 
+                case 'TS'
+                    set lcl_role 'Supervisor'
+                case 'TC'
+                    set lcl_role 'Consult'
+                case 'A1'
+                    set lcl_role 'Agent'
+                case 'A2'
+                    set lcl_role 'Agent'
+                case 'SA'
+                    set lcl_role 'System Admin'
+            end_switch
+            if SystemInt = 'A1'
+                set lcl_role 'Manager'
+            end_if
+            set lcl_String ''
+            concat lcl_String lcl_Result ',,' SystemInt ',' lcl_role ',' lcl_CurrDate' 'lcl_Time ',' 'Comment :' ',' KM_SEARCH_NO ',' KM_SEARCH_COMMENT
+            insert_file_line lcl_FileName lcl_String '' lcl_Status
+        else
+             set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'visible' 'Y'
+             set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'text' 'Error : Comment fail > please contact developer'
+        end_if
+    else
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'visible' 'Y'
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'text' 'Warning : User is Not Authorized'
+    end_if
+else
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'visible' 'Y'
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label4' 'text' 'Warning : Please comment before enter'
+end_if
+close_file lcl_Filename
+set KM_SEARCH_COMMENT ''
+call 'KM_SEARCH_WEB_REFRESH' #1= KM_SEARCH_NO #2= 'N'
