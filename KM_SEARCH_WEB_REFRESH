@@ -1,0 +1,192 @@
+;Script Name  : KM_SEARCH_WEB_REFRESH
+;Created By   : ST
+;Created Date : 02jul25
+;Comment      : Refresh data comment
+;--------------------------------------------------------------------------------------------
+name_arguments #1 'KM_NUMBER' #2 'na_Edit'
+build_local_data_item  'NA_File_Name' 'lcl_Result' 'lcl_RowFound'  'lcl_line' 'lcl_position' 'lcl_max_row' 'NA_Table_Name'  'lcl_String'
+remove_page 'KM_SEARCH_WEBBOARD'
+
+Set NA_File_Name 'M:\\qikres\\Data\\KM-Webboard\\Webboard.txt'   ;qikres\Data\KM-Webboard
+Set NA_Table_Name 'KM_SEARCH_WEBBOARD_ALL'
+Call 'READ_FILE_TO_TABLE' #1= NA_File_Name #2= NA_Table_Name #3= ',' #4= ''
+
+if KM_NUMBER = 'RQKM'
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'PushButton1' 'visible' 'N'
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label2' 'visible' 'N'
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic1' 'graphicName' '00_icon_req.png'
+    get_table_row_count NA_Table_Name lcl_max_row
+    clear_table 'KM_SEARCH_WEBBOARD'
+                
+    search_table 'KM_SEARCH_WEBBOARD_ALL' KM_NUMBER 'No' lcl_RowFound 
+    label 'loop'
+    if lcl_RowFound <> ''
+        copy_table NA_Table_Name lcl_Result lcl_RowFound '^' 'Row'
+        if lcl_Result <> 'R'
+            copy_table NA_Table_Name lcl_Result lcl_RowFound '^'
+            insert_table_row 'KM_SEARCH_WEBBOARD' lcl_Result '' '^'
+            calculate lcl_RowFound = lcl_RowFound + '1'
+            search_table 'KM_SEARCH_WEBBOARD_ALL' KM_NUMBER 'No' lcl_RowFound lcl_RowFound lcl_max_row
+            if lcl_RowFound <> ''
+                goto 'Loop'
+            end_if
+        else
+            calculate lcl_RowFound = lcl_RowFound + '1'
+            search_table 'KM_SEARCH_WEBBOARD_ALL' KM_NUMBER 'No' lcl_RowFound lcl_RowFound lcl_max_row
+            if lcl_RowFound <> ''
+                goto 'Loop'
+            end_if
+        end_if
+    end_if
+
+    set lcl_RowFound '1'
+    get_table_row_count 'KM_SEARCH_WEBBOARD' lcl_max_row
+    while lcl_RowFound <= lcl_max_row
+       ;set_table_property 'KM_SEARCH_WEBBOARD' lcl_RowFound 'PicUser' '^' 'graphic' '00_icon_profile.png'
+       if na_Edit = 'N'
+            set_table_property 'KM_SEARCH_WEBBOARD' lcl_RowFound 'PicUser' '^' 'graphic' '00_icon_profile.png'
+        else
+            set_table_property 'KM_SEARCH_WEBBOARD' lcl_RowFound 'PicUser' '^' 'graphic' '00_icon_delete.png'
+        end_if
+        calculate lcl_RowFound = lcl_RowFound + '1'
+    end_while
+    
+    set lcl_rowFound '1'
+    get_table_row_count 'KM_SEARCH_ALLDATA' lcl_max_row
+    search_table 'KM_SEARCH_ALLDATA' KM_NUMBER 'Row' lcl_rowFound lcl_rowFound lcl_max_row lcl_Result 'Name'
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label1' 'text' lcl_Result ; Set name
+    ;==============  Revised
+    set lcl_RowFound '1'
+    search_table 'KM_SEARCH_ALLDATA' KM_NUMBER 'Row' lcl_RowFound lcl_RowFound lcl_max_row lcl_Result 'Ref'
+    if lcl_Result <> ''
+        set lcl_String ''
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label8' 'visible' 'Y'
+        concat lcl_String 'Revised by : ' lcl_Result
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label8' 'text' lcl_String
+    else
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label8' 'visible' 'N'
+    end_if
+    set lcl_RowFound '1'
+    search_table 'KM_SEARCH_ALLDATA' KM_NUMBER 'Row' lcl_RowFound lcl_RowFound lcl_max_row lcl_Result 'Search' ;Set warning red
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'warning1' 'text' lcl_Result
+    search_table 'KM_SEARCH_ALLDATA' KM_NUMBER 'Row' lcl_RowFound lcl_RowFound lcl_max_row lcl_Result 'Source' ;Set warning red
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'warning2' 'text' lcl_Result
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label6' 'text' 'Request KM' ; Head Comment Board
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic2' 'graphicName' '00_icon_profile.png' ; Pic Comment
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'InPlaceList1' 'enabled' na_Edit ; Supervisor Edit comment
+    if RoleCode = 'SA' | RoleCode = 'TS' ; Remove Comment by sup
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'PushButton4' 'enabled' 'Y'
+    else
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'PushButton4' 'enabled' 'N'
+    end_if
+    clear_popup 'KM_SEARCH' 
+    clear_popup 'KM_SEARCH_WEBBOARD' 
+    read_popup 'KM_SEARCH_WEBBOARD'
+    call 'KM_SEARCH_SAVE_COMMENT'
+else
+    ;=======  insert_table_display
+    get_table_row_count NA_Table_Name lcl_max_row
+    clear_table 'KM_SEARCH_WEBBOARD'
+                
+    search_table 'KM_SEARCH_WEBBOARD_ALL' KM_NUMBER 'No' lcl_RowFound 
+    label 'loop2'
+    if lcl_RowFound <> ''
+        copy_table NA_Table_Name lcl_Result lcl_RowFound '^' 'Row'
+        if lcl_Result <> 'R'
+            copy_table NA_Table_Name lcl_Result lcl_RowFound '^'
+            insert_table_row 'KM_SEARCH_WEBBOARD' lcl_Result '' '^'
+            calculate lcl_RowFound = lcl_RowFound + '1'
+            search_table 'KM_SEARCH_WEBBOARD_ALL' KM_NUMBER 'No' lcl_RowFound lcl_RowFound lcl_max_row
+            if lcl_RowFound <> ''
+                goto 'Loop2'
+            end_if
+        else
+            calculate lcl_RowFound = lcl_RowFound + '1'
+            search_table 'KM_SEARCH_WEBBOARD_ALL' KM_NUMBER 'No' lcl_RowFound lcl_RowFound lcl_max_row
+            if lcl_RowFound <> ''
+                goto 'Loop2'
+            end_if
+        end_if
+    end_if
+    
+    set lcl_RowFound '1'
+    get_table_row_count 'KM_SEARCH_WEBBOARD' lcl_max_row
+    while lcl_RowFound <= lcl_max_row
+        ;copy_table 'KM_SEARCH_WEBBOARD' lcl_Result lcl_RowFound ',' 'Role'
+        if na_Edit = 'N'
+            set_table_property 'KM_SEARCH_WEBBOARD' lcl_RowFound 'PicUser' '^' 'graphic' '00_icon_profile.png'
+        else
+            set_table_property 'KM_SEARCH_WEBBOARD' lcl_RowFound 'PicUser' '^' 'graphic' '00_icon_delete.png'
+        end_if
+    calculate lcl_RowFound = lcl_RowFound + '1'
+    end_while
+
+    ;===== Set icon ======;
+    set lcl_RowFound '1'
+    get_table_row_count 'KM_SEARCH_DATA' lcl_max_row
+    search_table 'KM_SEARCH_DATA' KM_NUMBER 'Row' lcl_RowFound lcl_RowFound lcl_max_row lcl_Result 'Source'
+    search_data_item '.pdf' lcl_Position lcl_Result '1'
+    if lcl_Position <> ''
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic1' 'graphicName' '00_head_pdf.png'
+    else
+        search_data_item '.mp4' lcl_Position lcl_Result '1'
+        if lcl_Position <> ''
+            set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic1' 'graphicName' '00_head_vdeo.png'
+        else
+            set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic1' 'graphicName' '00_head_internet.png'
+        end_if
+    end_if
+                
+    ;==== Set Name & ID ===== ;
+    get_table_row_count 'KM_SEARCH_DATA' lcl_max_row
+    set lcl_String ''
+    concat lcl_String 'ID : '  KM_NUMBER
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label2' 'text' lcl_String
+    search_table 'KM_SEARCH_DATA' KM_NUMBER 'Row' lcl_rowFound lcl_rowFound lcl_max_row lcl_Result 'Name'
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label1' 'text' lcl_Result ; Set name
+   ; switch RoleCode
+        ;case 'SA'
+     set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic2' 'graphicName' '00_icon_profile.png'
+            ;set lcl_String 'System Admin :'
+        ;case 'TS'
+           ; set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic2' 'graphicName' '00_icon_profile.png'
+            ;set lcl_String 'Supervisor :'
+        ;case 'TC'
+            ;set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic2' 'graphicName' '00_icon_profile.png'
+            ;set lcl_String 'Consult :'
+        ;case 'A1'
+            ;set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic2' 'graphicName' '00_icon_profile.png'
+            ;set lcl_String 'Agent :'
+        ;case 'A2'
+            ;set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Graphic2' 'graphicName' '00_icon_profile.png'
+            ;set lcl_String 'Agent :'
+    ;end_switch
+    ;==============  Revised
+    search_table 'KM_SEARCH_DATA' KM_NUMBER 'Row' lcl_RowFound lcl_RowFound lcl_max_row lcl_Result 'Ref'
+    if lcl_Result <> ''
+        set lcl_String ''
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label8' 'visible' 'Y'
+        concat lcl_String 'Revised by : ' lcl_Result
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label8' 'text' lcl_String
+    else
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label8' 'visible' 'N'
+    end_if
+    ;=========== Set URL For open
+    search_table 'KM_SEARCH_DATA' KM_NUMBER 'Row' lcl_RowFound lcl_RowFound lcl_max_row lcl_Result 'Source'
+    set KM_SEARCH_LAUNCH_LINK  lcl_Result
+    ;===============================
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'PushButton3' 'visible' 'Y'
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'Label2' 'visible' 'Y'
+
+    set_popup_control_property 'KM_SEARCH_WEBBOARD' 'InPlaceList1' 'enabled' na_Edit ; Supervisor Edit comment
+    if RoleCode = 'SA' | RoleCode = 'TS' ; Remove Comment by sup
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'PushButton4' 'enabled' 'Y'
+    else
+        set_popup_control_property 'KM_SEARCH_WEBBOARD' 'PushButton4' 'enabled' 'N'
+    end_if
+
+    clear_popup 'KM_SEARCH' 
+    clear_popup 'KM_SEARCH_WEBBOARD'
+    read_popup 'KM_SEARCH_WEBBOARD'
+    call 'KM_SEARCH_SAVE_COMMENT'
+end_if
