@@ -1,0 +1,6 @@
+;Script Name  : KM_SEARCH_REMOVE_COMMENT
+;Created By   : ST
+;Created Date : 14jul25
+;Comment      : Read comment to table
+;--------------------------------------------------------------------------------------------
+call 'KM_SEARCH_WEB_REFRESH' #1= KM_SEARCH_NO #2= 'Y'
