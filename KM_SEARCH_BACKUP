@@ -1,0 +1,30 @@
+;Script Name  : KM_SEARCH_BACKUP
+;Created By   : ST
+;Created Date : 19jun25
+;Comment      : Export file to csv BackUP File
+;--------------------------------------------------------------------------------------------
+build_local_data_item  'NA_File_Name' 'NA_Table_Name' 'lcl_Status' 'NA_File_NameNew'
+
+Set NA_File_Name 'M:\\qikres\\Data\\KM-Search\\Database.txt'
+Set NA_Table_Name 'KM_SEARCH_ALLDATA'
+Set NA_File_NameNew 'M:\\qikres\\QikKM\\File\\Formats\\BackupData.csv'
+delete_file NA_File_NameNew
+copy_file NA_File_Name NA_File_NameNew lcl_Status
+if lcl_Status = '0'
+    delete_file 'M:\\qikres\\Data\\KM-Search\\BackUpSup.csv'; backup sup
+    copy_file 'M:\\qikres\\Data\\KM-Search\\Supervisor.txt' 'M:\\qikres\\Data\\KM-Search\\BackUpSup.csv' lcl_Status ; backup sup
+    if lcl_Status = '0'
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'SYSTEM : BACKUP SUCCED' 
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'styles.text' 'white_on_green_B14'
+    else
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'WARNING : BACKUP FAILD' 
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'styles.text' 'white_on_red_B14'
+    end_if
+else
+    set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+    set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'WARNING : BACKUP FAILD' 
+    set_popup_control_property 'KM_SEARCH' 'Label5' 'styles.text' 'white_on_red_B14'
+end_if
+call 'KM_SEARCH_OPEN'
