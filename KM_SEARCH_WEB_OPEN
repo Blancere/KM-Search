@@ -1,0 +1,9 @@
+;Script Name  : KM_SEARCH_WEB_OPEN
+;Created By   : ST
+;Created Date : 03jul25
+;Comment      :  
+;--------------------------------------------------------------------------------------------
+build_local_data_item 'lcl_link'
+
+concat lcl_link 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe 'KM_SEARCH_LAUNCH_LINK 
+launch lcl_link
