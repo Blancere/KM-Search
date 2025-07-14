@@ -1,0 +1,76 @@
+;Script Name  : KM_SEARCH_SAVE
+;Created By   : ST
+;Created Date : 12JUN25
+;Comment      :
+;--------------------------------------------------------------------------------------------
+build_local_data_item  'lcl_Filename' 'lcl_Result' 'lcl_RowFound' 'lcl_Status' 'lcl_String' 'lcl_line' 'lcl_position' 'lcl_max_row' 'lcl_CurrDate'
+get_current_date lcl_CurrDate
+call 'util:dateFormatter' #1= 'ddMMyy'  #2=lcl_CurrDate #3='ddMMMyy' #4=lcl_CurrDate 
+if KM_SEARCH_PAGE_STATUS = 'AL'
+    set lcl_Filename 'M:\\qikres\\Data\\KM-Search\\Database.txt'
+else
+    if KM_SEARCH_PAGE_STATUS = 'TS'
+        set lcl_Filename 'M:\\qikres\\Data\\KM-Search\\Supervisor.txt'
+    end_if
+end_if
+get_table_row_count 'KM_SEARCH_ALLDATA' lcl_max_row
+search_table 'KM_SEARCH_ALLDATA' KM_SEARCH_NO 'Row' lcl_RowFound '' lcl_max_row lcl_Result 'Row'
+if lcl_RowFound <> '' & KM_SEARCH_NO = lcl_Result
+    if KM_SEARCH_NAME <> ''
+        if KM_SEARCH_STRING <> '' & KM_SEARCH_LOCATION <> ''
+        
+             open_file lcl_Filename 'Y' lcl_Status
+             if lcl_Status = '0'
+                ;calculate lcl_RowFound = lcl_RowFound + '1'
+                delete_file_line  lcl_FileName lcl_RowFound lcl_Status 
+                ;calculate lcl_RowFound = lcl_RowFound - '1'
+                if lcl_Status = '0'
+                    if KM_SEARCH_BOOKMARKS <> 'Y'
+                        set KM_SEARCH_BOOKMARKS 'N'
+                    end_if
+                    set lcl_String KM_SEARCH_NO
+                    concat lcl_String  ',' KM_SEARCH_BOOKMARKS ','  KM_SEARCH_STRING
+                    concat lcl_String ',' KM_SEARCH_NAME ','  KM_SEARCH_LOCATION 
+                    concat lcl_String ',' 'Edit' ',' 'N' 
+                    concat lcl_String ',' SystemInt ' Edit 'lcl_CurrDate 
+                    concat lcl_String ','  KM_SEARCH_Revised
+                    insert_file_line lcl_FileName lcl_String '' lcl_Status
+                    if lcl_Status = '0'
+                        ;remove_page 'KM_SEARCH'
+                        remove_page 'KM_SEARCH_EDIT'
+                        set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+                        set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'SYSTEM : SAVE KM SUCCEED !' 
+                        set_popup_control_property 'KM_SEARCH' 'Label5' 'styles.text' 'white_on_green_B14'
+                        ;call 'KM_SEARCH_OPEN'
+                        clear_table 'KM_SEARCH_DATA'
+                        clear_table'KM_SEARCH_ALLDATA'
+                    end_if
+                end_if
+            end_if
+            close_file lcl_Filename
+        else
+            remove_page 'KM_SEARCH'
+            set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+            set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'WARNING : NEED SEARCH STRING AND FILE LOCATION !' 
+            call 'KM_SEARCH_OPEN'
+        end_if
+    else
+        remove_page 'KM_SEARCH'
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+        set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'WARNING : NEED KM NAME !' 
+        call 'KM_SEARCH_OPEN'
+    end_if
+else
+    remove_page 'KM_SEARCH'
+    set_popup_control_property 'KM_SEARCH' 'Label5' 'visible' 'Y' 
+    set_popup_control_property 'KM_SEARCH' 'Label5' 'text' 'WARNING : NOT FOUND !' 
+    call 'KM_SEARCH_OPEN'
+end_if
+remove_page 'KM_SEARCH'
+if KM_SEARCH_PAGE_STATUS = 'AL'
+    call 'KM_SEARCH_OPEN'
+else
+    if KM_SEARCH_PAGE_STATUS = 'TS'
+        call 'KM_SEARCH_SUPERVISOR'
+    end_if
+end_if
